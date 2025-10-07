@@ -98,8 +98,9 @@ Open a new terminal while turtlesim is still running in the other one, and enter
 ```bash
 ros2 node list
 ```
+```
 /turtlesim
-
+```
 Open another new terminal and start the teleop node with the command:
 
 ```bash
@@ -232,8 +233,9 @@ Subscription count: 2
 Nodes send data over topics using messages. Publishers and subscribers must send and receive the same type of message to communicate.
 
 The topic types we saw earlier after running **ros2 topic list -t** let us know what message type is used on each topic. Recall that the **cmd_vel** topic has the type:
--> geometry_msgs/msg/Twist
-
+```
+geometry_msgs/msg/Twist
+```
 This means that in the package **geometry_msgs** there is a **msg** called **Twist**.
 Running:
 ```bash
