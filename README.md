@@ -212,6 +212,7 @@ Another way to look at this is running:
 ```bash
 ros2 topic info /turtle1/cmd_vel
 ```
+
 Type: geometry_msgs/msg/Twist
 Publisher count: 1
 Subscription count: 2
@@ -233,6 +234,7 @@ ros2 interface show geometry_msgs/msg/Twist
 ```
 Which will return:
 This expresses velocity in free space broken into its linear and angular parts.
+
     Vector3  linear
             float64 x
             float64 y
@@ -241,6 +243,7 @@ This expresses velocity in free space broken into its linear and angular parts.
             float64 x
             float64 y
             float64 z
+            
 This tells you that the **/turtlesim** node is expecting a message with two vectors, **linear** and **angular**, of three elements each.
 
 ## 6. ros2 topic pub
