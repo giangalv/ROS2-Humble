@@ -74,7 +74,7 @@ To stop the simulation you can enter **Ctrl+c** in the terminals.
 
 -----------------------------------------------------------------------------------------------
 # NODES
-## 1. Ros2 run
+## 1. ROS2 RUN
 The command **ros2 run** launches an executable from a package.
 ```bash
 ros2 run <package_name> <executable_name>
@@ -90,7 +90,7 @@ Here, the package name is **turtlesim** and the executable name is **turtlesim_n
 
 We still don’t know the node name, however. You can find node names by using **ros2 node list**.
 
-## 2. Ros2 node list
+## 2. ROS2 NODE LIST
 **ros2 node list** will show you the names of all running nodes. This is especially useful when you want to interact with a node, or when you have a system running many nodes and need to keep track of them.
 
 Open a new terminal while turtlesim is still running in the other one, and enter the following command. The terminal will return the node name:
@@ -119,7 +119,7 @@ ros2 node list
 /teleop_turtle
 ```
 
-## 3. Ros2 node info
+## 3. ROS2 NODE INFO
 Now that you know the names of your nodes, you can access more information about them with:
 
 ```bash
@@ -131,7 +131,7 @@ ros2 node info /turtlesim
 ```
 ros2 node info returns a list of subscribers, publishers, services, and actions. i.e. the ROS graph connections that interact with that node.
 
-## 4. Node remapping
+## 4. Node Remapping
 Remapping allows you to reassign default node properties, like node name, topic names, service names, etc., to custom values.
 Now, let’s reassign the name of our **/turtlesim** node. In a new terminal, run the following command:
 ```bash
@@ -152,7 +152,7 @@ Open another terminal and run:
 ```bash
 ros2 run turtlesim turtle_teleop_key
 ```
-## 1. rqt_graph
+## 1. RQT_GRAPH
 We will use **rqt_graph** to visualize the changing nodes and topics, as well as the connections between them.
 To run rqt_graph, open a new terminal and enter the command:
 ```bash
@@ -164,7 +164,7 @@ The graph is depicting how the **/turtlesim** node and the **/teleop_turtle** no
 
 rqt_graph is a graphical introspection tool. Now we’ll look at some command line tools for introspecting topics.
 
-## 2. ros2 topic list
+## 2. ROS2 TOPIC LIST
 Running the **ros2 topic list** command in a new terminal will return a list of all the topics currently active in the system:
 ```bash
 ros2 topic list
@@ -191,7 +191,7 @@ ros2 topic list -t
 
 These attributes, particularly the type, are how nodes know they’re talking about the same information as it moves over topics.
 
-## 3. ros2 topic echo
+## 3. ROS2 TOPIC ECHO
 To see the data being published on a topic, use:
 ```bash
 ros2 topic echo <topic_name>
@@ -216,7 +216,7 @@ angular:
   ---
 ```
 
-## 4. ros2 topic info
+## 4. ROS2 TOPIC INFO
 Topics don’t have to only be one-to-one communication; they can be one-to-many, many-to-one, or many-to-many.
 
 Another way to look at this is running:
@@ -229,7 +229,7 @@ Publisher count: 1
 Subscription count: 2
 ```
 
-## 5. ros2 interface show
+## 5. ROS2 INTERFACE SHOW
 Nodes send data over topics using messages. Publishers and subscribers must send and receive the same type of message to communicate.
 
 The topic types we saw earlier after running **ros2 topic list -t** let us know what message type is used on each topic. Recall that the **cmd_vel** topic has the type:
@@ -259,7 +259,7 @@ This expresses velocity in free space broken into its linear and angular parts.
 ```        
 This tells you that the **/turtlesim** node is expecting a message with two vectors, **linear** and **angular**, of three elements each.
 
-## 6. ros2 topic pub
+## 6. ROS2 TOPIC PUB
 Now that you have the message structure, you can publish data to a topic directly from the command line using:
 ```bash
 ros2 topic pub <topic_name> <msg_type> '<args>'
@@ -276,7 +276,7 @@ Optional arguments:
 * To publish your command just once add the **--once** option.
 * To wait for two matching subscriptions -w 2.
 
-## 7. ros2 topic hz
+## 7. ROS2 TOPIC HZ
 You can also view the rate at which data is published using:
 ```bash
 ros2 topic hz /turtle1/pose
@@ -288,7 +288,7 @@ average rate: 59.354
 
 It will return data on the rate at which the **/turtlesim** node is publishing data to the **pose** topic.
 
-## 8. ros2 topic bw
+## 8. ROS2 TOPIC BW
 The bandwidth used by a topic can be viewed using:
 ```bash
 ros2 topic bw /turtle1/pose
@@ -300,7 +300,7 @@ Subscribed to [/turtle1/pose]
 ```
 It returns the bandwidth utilization and number of messages being published to the /turtle1/pose topic.
 
-## 9. ros2 topic find
+## 9. ROS2 TOPIC FIND
 To list a list of available topics of a given type use:
 ```bash
 ros2 topic find <topic_type>
