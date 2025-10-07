@@ -41,12 +41,12 @@ Arrange these windows so that you can see the turtlesim window, but also have th
 Use the arrow keys on your keyboard to control the turtle. It will move around the screen, using its attached “pen” to draw the path it followed so far.
 
 You can see the nodes, and their associated topics, services, and actions, using the **list** subcommands of the respective commands:
-```bash
-ros2 node list
-ros2 topic list
-ros2 service list
-ros2 action list
-```
+
+* ros2 node list
+* ros2 topic list
+* ros2 service list
+* ros2 action list
+
 The goal of this tutorial is only to get a general overview of turtlesim.
 
 ## 4.INSTALL RQT
