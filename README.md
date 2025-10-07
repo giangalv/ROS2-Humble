@@ -12,10 +12,12 @@ To check if the package is installed, run the following command, which should re
 ```bash
 ros2 pkg executables turtlesim
 ```
+```
 turtlesim draw_square
 turtlesim mimic
 turtlesim turtle_teleop_key
 turtlesim turtlesim_node
+```
 
 ## 2.START TURTLESIM
 To start turtlesim, enter the following command in your terminal:
@@ -111,8 +113,10 @@ Return to the terminal where you ran ros2 node list and run it again. You will n
 ```bash
 ros2 node list
 ```
+```
 /turtlesim
 /teleop_turtle
+```
 
 ## 3. Ros2 node info
 Now that you know the names of your nodes, you can access more information about them with:
@@ -164,21 +168,25 @@ Running the **ros2 topic list** command in a new terminal will return a list of 
 ```bash
 ros2 topic list
 ```
+```
 /parameter_events
 /rosout
 /turtle1/cmd_vel
 /turtle1/color_sensor
 /turtle1/pose
+```
 
 **ros2 topic list -t** will return the same list of topics, this time with the topic type appended in brackets:
 ```bash
 ros2 topic list -t
+```
 ```
 /parameter_events [rcl_interfaces/msg/ParameterEvent]
 /rosout [rcl_interfaces/msg/Log]
 /turtle1/cmd_vel [geometry_msgs/msg/Twist]
 /turtle1/color_sensor [turtlesim/msg/Color]
 /turtle1/pose [turtlesim/msg/Pose]
+```
 
 These attributes, particularly the type, are how nodes know they’re talking about the same information as it moves over topics.
 
@@ -195,6 +203,7 @@ At first, this command won’t return any data. That’s because it’s waiting 
 
 Return to the terminal where **turtle_teleop_key** is running and use the arrows to move the turtle around. Watch the terminal where your **echo** is running at the same time, and you’ll see position data being published for every movement you make.
 
+```
 linear:
   x: 2.0
   y: 0.0
@@ -204,6 +213,7 @@ angular:
   y: 0.0
   z: 0.0
   ---
+```
 
 ## 4. ros2 topic info
 Topics don’t have to only be one-to-one communication; they can be one-to-many, many-to-one, or many-to-many.
@@ -212,10 +222,11 @@ Another way to look at this is running:
 ```bash
 ros2 topic info /turtle1/cmd_vel
 ```
-
+```
 Type: geometry_msgs/msg/Twist
 Publisher count: 1
 Subscription count: 2
+```
 
 ## 5. ros2 interface show
 Nodes send data over topics using messages. Publishers and subscribers must send and receive the same type of message to communicate.
@@ -234,7 +245,7 @@ ros2 interface show geometry_msgs/msg/Twist
 ```
 Which will return:
 This expresses velocity in free space broken into its linear and angular parts.
-
+```
     Vector3  linear
             float64 x
             float64 y
@@ -243,7 +254,7 @@ This expresses velocity in free space broken into its linear and angular parts.
             float64 x
             float64 y
             float64 z
-            
+```        
 This tells you that the **/turtlesim** node is expecting a message with two vectors, **linear** and **angular**, of three elements each.
 
 ## 6. ros2 topic pub
@@ -268,9 +279,11 @@ You can also view the rate at which data is published using:
 ```bash
 ros2 topic hz /turtle1/pose
 ```
+```
 average rate: 59.354
   min: 0.005s max: 0.027s std dev: 0.00284s window: 58
-  
+```
+
 It will return data on the rate at which the **/turtlesim** node is publishing data to the **pose** topic.
 
 ## 8. ros2 topic bw
@@ -278,10 +291,11 @@ The bandwidth used by a topic can be viewed using:
 ```bash
 ros2 topic bw /turtle1/pose
 ```
+```
 Subscribed to [/turtle1/pose]
 1.51 KB/s from 62 messages
     Message size mean: 0.02 KB min: 0.02 KB max: 0.02 KB
-    
+```
 It returns the bandwidth utilization and number of messages being published to the /turtle1/pose topic.
 
 ## 9. ros2 topic find
@@ -293,8 +307,9 @@ Using the **find** command outputs topics available when given the message type:
 ```bash
 ros2 topic find geometry_msgs/msg/Twist
 ```
+```
 /turtle1/cmd_vel
-
+```
 ## 10.CLOSE TERMINALS
 To stop the simulation you can enter **Ctrl+c** in the terminals.
 
