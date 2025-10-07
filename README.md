@@ -163,22 +163,23 @@ rqt_graph is a graphical introspection tool. Now we’ll look at some command li
 Running the **ros2 topic list** command in a new terminal will return a list of all the topics currently active in the system:
 ```bash
 ros2 topic list
+```
 /parameter_events
 /rosout
 /turtle1/cmd_vel
 /turtle1/color_sensor
 /turtle1/pose
-```
 
 **ros2 topic list -t** will return the same list of topics, this time with the topic type appended in brackets:
 ```bash
 ros2 topic list -t
+```
 /parameter_events [rcl_interfaces/msg/ParameterEvent]
 /rosout [rcl_interfaces/msg/Log]
 /turtle1/cmd_vel [geometry_msgs/msg/Twist]
 /turtle1/color_sensor [turtlesim/msg/Color]
 /turtle1/pose [turtlesim/msg/Pose]
-```
+
 These attributes, particularly the type, are how nodes know they’re talking about the same information as it moves over topics.
 
 ## 3. ros2 topic echo
@@ -210,10 +211,10 @@ Topics don’t have to only be one-to-one communication; they can be one-to-many
 Another way to look at this is running:
 ```bash
 ros2 topic info /turtle1/cmd_vel
+```
 Type: geometry_msgs/msg/Twist
 Publisher count: 1
 Subscription count: 2
-```
 
 ## 5. ros2 interface show
 Nodes send data over topics using messages. Publishers and subscribers must send and receive the same type of message to communicate.
@@ -263,19 +264,21 @@ Optional arguments:
 You can also view the rate at which data is published using:
 ```bash
 ros2 topic hz /turtle1/pose
+```
 average rate: 59.354
   min: 0.005s max: 0.027s std dev: 0.00284s window: 58
-```
+  
 It will return data on the rate at which the **/turtlesim** node is publishing data to the **pose** topic.
 
 ## 8. ros2 topic bw
 The bandwidth used by a topic can be viewed using:
 ```bash
 ros2 topic bw /turtle1/pose
+```
 Subscribed to [/turtle1/pose]
 1.51 KB/s from 62 messages
     Message size mean: 0.02 KB min: 0.02 KB max: 0.02 KB
-```
+    
 It returns the bandwidth utilization and number of messages being published to the /turtle1/pose topic.
 
 ## 9. ros2 topic find
@@ -286,8 +289,8 @@ ros2 topic find <topic_type>
 Using the **find** command outputs topics available when given the message type:
 ```bash
 ros2 topic find geometry_msgs/msg/Twist
-/turtle1/cmd_vel
 ```
+/turtle1/cmd_vel
 
 ## 10.CLOSE TERMINALS
 To stop the simulation you can enter **Ctrl+c** in the terminals.
