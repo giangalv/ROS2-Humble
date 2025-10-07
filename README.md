@@ -131,7 +131,7 @@ ros2 node info /turtlesim
 ```
 ros2 node info returns a list of subscribers, publishers, services, and actions. i.e. the ROS graph connections that interact with that node.
 
-### Node remapping
+## 4. Node remapping
 Remapping allows you to reassign default node properties, like node name, topic names, service names, etc., to custom values.
 Now, let’s reassign the name of our **/turtlesim** node. In a new terminal, run the following command:
 ```bash
@@ -139,7 +139,7 @@ ros2 run turtlesim turtlesim_node --ros-args --remap __node:=my_turtle
 ```
 Since you’re calling **ros2 run** on turtlesim again, another turtlesim window will open. However, now if you return to the terminal where you ran **ros2 node list**, and run it again, you will see three node names.
 
-## 4.CLOSE TERMINALS
+## 5.CLOSE TERMINALS
 To stop the simulation you can enter **Ctrl+c** in the terminals.
 
 -----------------------------------------------------------------------------------------------
