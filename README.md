@@ -315,40 +315,208 @@ ros2 topic find geometry_msgs/msg/Twist
 To stop the simulation you can enter **Ctrl+c** in the terminals.
 
 -----------------------------------------------------------------------------------------------
+
+# SERVICES
+Open a new terminal and run:
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 run turtlesim turtlesim_node
 ```
+Open another terminal and run:
 ```bash
-ros2 run rqt_graph rqt_graph
-```
-```bash
-ros2 run rqt_graph rqt_graph
-```
-```bash
-ros2 run rqt_graph rqt_graph
-```
-```bash
-ros2 run rqt_graph rqt_graph
-```
-```bash
-ros2 run rqt_graph rqt_graph
-```
-```bash
-ros2 run rqt_graph rqt_graph
+ros2 run turtlesim turtle_teleop_key
 ```
 
+## 1. ROS2 SERVICE LIST
+Running the **ros2 service list** command in a new terminal will return a list of all the services currently active in the system:
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 service list
 ```
+```
+/clear
+/kill
+/reset
+/spawn
+/teleop_turtle/describe_parameters
+/teleop_turtle/get_parameter_types
+/teleop_turtle/get_parameters
+/teleop_turtle/list_parameters
+/teleop_turtle/set_parameters
+/teleop_turtle/set_parameters_atomically
+/turtle1/set_pen
+/turtle1/teleport_absolute
+/turtle1/teleport_relative
+/turtlesim/describe_parameters
+/turtlesim/get_parameter_types
+/turtlesim/get_parameters
+/turtlesim/list_parameters
+/turtlesim/set_parameters
+/turtlesim/set_parameters_atomically
+```
+You will see that both nodes have the same six services with parameters in their names. Nearly every node in ROS 2 has these infrastructure services that parameters are built off of.
+
+## 2. ROS2 SERVICE TYPE
+Services have types that describe how the request and response data of a service is structured. Service types are defined similarly to topic types, except service types have two parts: one message for the request and another for the response.
+
+To find out the type of a service, use the command:
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 service type <service_name>
 ```
+
+Let’s take a look at turtlesim’s **/clear** service. In a new terminal, enter the command:
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 service type /clear
 ```
+```
+std_srvs/srv/Empty
+```
+The **Empty** type means the service call sends no data when making a request and receives no data when receiving a response.
+
+To see the types of all the active services at the same time, you can append the --show-types option, abbreviated as -t, to the list command:
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 service list -t
 ```
+
+## 3. ROS2 SERVICE FIND
+If you want to find all the services of a specific type, you can use the command:
+```bash
+ros2 service find <type_name>
+```
+For example, you can find all the **Empty** typed services like this:
+```bash
+ros2 service find std_srvs/srv/Empty
+```
+```
+/clear
+/reset
+```
+
+## 4. ROS2 INTERFACE SHOW
+You can call services from the command line, but first you need to know the structure of the input arguments.
+```bash
+ros2 interface show <type_name>
+```
+
+To see the request and response arguments of the **/spawn** service, run the command:
+```bash
+ros2 interface show turtlesim/srv/Spawn
+```
+```
+float32 x
+float32 y
+float32 theta
+string name # Optional.  A unique name will be created and returned if this is empty
+---
+string name
+```
+x, y and theta determine the 2D pose of the spawned turtle, and name is clearly optional.
+
+## 5. ROS2 SERVICE CALL
+Now that you know what a service type is, how to find a service’s type, and how to find the structure of that type’s arguments, you can call a service using:
+```bash
+ros2 service call <service_name> <service_type> <arguments>
+```
+The **<arguments>** part is optional. For example, you know that **Empty** typed services don’t have any arguments:
+```bash
+ros2 service call /clear std_srvs/srv/Empty
+```
+This command will clear the turtlesim window of any lines your turtle has drawn.
+
+Now let’s spawn a new turtle by calling /spawn and setting arguments. Input <arguments> in a service call from the command-line need to be in YAML syntax.
+```bash
+ros2 service call /spawn turtlesim/srv/Spawn "{x: 2, y: 2, theta: 0.2, name: ''}"
+```
+You will get this method-style view of what’s happening, and then the service response. Your turtlesim window will update with the newly spawned turtle.
+
+
+# PARAMETERS
+A parameter is a configuration value of a node. You can think of parameters as node settings. A node can store parameters as integers, floats, booleans, strings, and lists. In ROS 2, each node maintains its own parameters.
+Open a new terminal and run:
+```bash
+ros2 run turtlesim turtlesim_node
+```
+Open another terminal and run:
+```bash
+ros2 run turtlesim turtle_teleop_key
+```
+
+## 1. ROS2 PARAM LIST
+To see the parameters belonging to your nodes, open a new terminal and enter the command:
+```bash
+ros2 param list
+```
+Based on their names, it looks like **/turtlesim**’s parameters determine the background color of the turtlesim window using RGB color values.
+
+## 2. ROS2 PARAM GET
+To display the type and current value of a parameter, use the command:
+```bash
+ros2 param get <node_name> <parameter_name>
+```
+
+Let’s find out the current value of **/turtlesim**’s parameter **background_g**:
+```bash
+ros2 param get /turtlesim background_g
+```
+```
+Integer value is: 86
+```
+Now you know **background_g** holds an integer value.
+If you run the same command on background_r and background_b, you will get the values 69 and 255, respectively
+
+## 3. ROS2 PARAM SET
+To change a parameter’s value at runtime, use the command:
+```bash
+ros2 param set <node_name> <parameter_name> <value>
+```
+Let’s change /turtlesim’s background color:
+```bash
+ros2 param set /turtlesim background_r 150
+```
+```
+Set parameter successful
+```
+The background of your turtlesim window should change colors
+
+Setting parameters with the set command will only change them in your current session, not permanently.
+
+## 4. ROS2 PARAM DUMP
+You can view all of a node’s current parameter values by using the command:
+```bash
+ros2 param dump <node_name>
+```
+
+To save your current configuration of /turtlesim’s parameters into the file turtlesim.yaml, enter the command:
+```bash
+ros2 param dump /turtlesim > turtlesim.yaml
+```
+You will find a new file in the current working directory your shell is running in.
+
+## 5. ROS2 PARAM LOAD
+You can load parameters from a file to a currently running node using the command:
+```bash
+ros2 param load <node_name> <parameter_file>
+```
+To load the turtlesim.yaml file generated with ros2 param dump into /turtlesim node’s parameters, enter the command:
+```bash
+ros2 param load /turtlesim turtlesim.yaml
+```
+
+## 6. LOAD PARAMETERS FILE ON NODE STARTUP
+To start the same node using your saved parameter values, use:
+```bash
+ros2 run <package_name> <executable_name> --ros-args --params-file <file_name>
+```
+This is the same command you always use to start turtlesim, with the added flags --ros-args and --params-file, followed by the file you want to load.
+
+Stop your running turtlesim node, and try reloading it with your saved parameters, using:
+```bash
+ros2 run turtlesim turtlesim_node --ros-args --params-file turtlesim.yaml
+```
+The turtlesim window should appear as usual, but with the purple background you set earlier.
+
+-----------------------------------------------------------------------------------------------
+
+
+
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
