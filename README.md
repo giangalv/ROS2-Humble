@@ -921,18 +921,99 @@ ros2 run turtlesim turtlesim_node
 ```
 
 # CREATING A PACKAGE
+A package is an organizational unit for your ROS 2 code. If you want to be able to install your code or share it with others, then you’ll need it organized in a package. With packages, you can release your ROS 2 work and allow others to build and use it easily.
 
-```bash
-ros2 run rqt_graph rqt_graph
+You can create a package using either CMake or Python, which are officially supported, though other build types do exist.
+
+## 1. WHAT MAKES UP ROS 2 PACKAGE?
+ROS 2 Python and CMake packages each have their own minimum required contents:
+
+### 1.a CMAKE
+* CMakeLists.txt file that describes how to build the code within the package
+* include/<package_name> directory containing the public headers for the package
+* package.xml file containing meta information about the package
+* src directory containing the source code for the package
+  
+The simplest possible package may have a file structure that look like:
+```
+my_package/
+     CMakeLists.txt
+     include/my_package/
+     package.xml
+     src/
 ```
 
-```bash
-ros2 run rqt_graph rqt_graph
+### 1.b PYTHON
+- package.xml file containing meta information about the package
+- resource/<package_name> marker file for the package
+- setup.cfg is required when a package has executables, so ros2 run can find them
+- setup.py containing instructions for how to install the package
+- <package_name> - a directory with the same name as your package, used by ROS 2 tools to find your package, contains __init__.py
+
+The simplest possible package may have a file structure that looks like:
+```
+my_package/
+      package.xml
+      resource/my_package
+      setup.cfg
+      setup.py
+      my_package/
 ```
 
-```bash
-ros2 run rqt_graph rqt_graph
+## 2. PACKAGES IN A WORKSPACE
+A single workspace can contain as many packages as you want, each in their own folder. You can also have packages of different build types in one workspace (CMake, Python, etc.). You cannot have nested packages.
+
+Best practice is to have a src folder within your workspace, and to create your packages in there. This keeps the top level of the workspace “clean”.
+
+A trivial workspace might look like:
 ```
+workspace_folder/
+    src/
+      cpp_package_1/
+          CMakeLists.txt
+          include/cpp_package_1/
+          package.xml
+          src/
+
+      py_package_1/
+          package.xml
+          resource/py_package_1
+          setup.cfg
+          setup.py
+          py_package_1/
+      ...
+      cpp_package_n/
+          CMakeLists.txt
+          include/cpp_package_n/
+          package.xml
+          src/
+```
+
+## 3. CREATE A PACKAGE
+Make sure you are in the src folder before running the package creation command.
+```bash
+cd ~/ros2_ws/src
+```
+
+The command syntax for creating a new package in ROS 2 is:
+```bash
+ros2 pkg create --build-type ament_python --license Apache-2.0 <package_name>
+```
+For this tutorial, you will use the optional argument --node-name which creates a simple Hello World type executable in the package.
+
+Enter the following command in your terminal:
+```bash
+ros2 pkg create --build-type ament_python --license Apache-2.0 --node-name my_node my_package
+```
+You will now have a new folder within your workspace’s src directory called my_package.
+
+## 4. BUILD A PACKAGE
+
+
+
+
+
+
 
 ```bash
 ros2 run rqt_graph rqt_graph
