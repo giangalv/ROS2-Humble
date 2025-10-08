@@ -515,11 +515,255 @@ The turtlesim window should appear as usual, but with the purple background you 
 
 -----------------------------------------------------------------------------------------------
 
+## ACTIONS
+Open a new terminal and run:
+```bash
+ros2 run turtlesim turtlesim_node
+```
+Open another terminal and run:
+```bash
+ros2 run turtlesim turtle_teleop_key
+```
+
+### 1. USE ACTIONS
+When you launch the /teleop_turtle node, you will see the following message in your terminal:
+```
+Use arrow keys to move the turtle.
+Use G|B|V|C|D|E|R|T keys to rotate to absolute orientations. 'F' to cancel a rotation.
+```
+Let’s focus on the second line, which corresponds to an action.
+Notice that the letter keys **G|B|V|C|D|E|R|T** form a “box” around the F key on a US QWERTY keyboard.
+Each key’s position around **F** corresponds to that orientation in turtlesim. For example, the **E** will rotate the turtle’s orientation to the upper left corner.
+
+Pay attention to the terminal where the **/turtlesim** node is running. Each time you press one of these keys, you are sending a goal to an action server that is part of the **/turtlesim** node. The goal is to rotate the turtle to face a particular direction. A message relaying the result of the goal should display once the turtle completes its rotation
+```
+[INFO] [turtlesim]: Rotation goal completed successfully
+```
+
+The **F** key will cancel a goal mid-execution.
+
+Try pressing the **C** key, and then pressing the **F** key before the turtle can complete its rotation. In the terminal where the **/turtlesim** node is running, you will see the message:
+```
+[INFO] [turtlesim]: Rotation goal canceled
+```
+Not only can the client-side (your input in the teleop) stop a goal, but the server-side (the /turtlesim node) can as well. When the server-side chooses to stop processing a goal, it is said to “abort” the goal.
+
+Try hitting the D key, then the G key before the first rotation can complete. In the terminal where the /turtlesim node is running, you will see the message:
+```
+[WARN] [turtlesim]: Rotation goal received before a previous goal finished. Aborting previous goal
+```
+This action server chose to abort the first goal because it got a new one. It could have chosen something else, like reject the new goal or execute the second goal after the first one finished. Don’t assume every action server will choose to abort the current goal when it gets a new one.
+
+### 2. ROS2 NODE INFO
+To see the list of actions a node provides, **/turtlesim** in this case, open a new terminal and run the command:
+```bash
+ros2 node info /turtlesim
+```
+```
+/turtlesim
+  Subscribers:
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+    /turtle1/cmd_vel: geometry_msgs/msg/Twist
+  Publishers:
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+    /rosout: rcl_interfaces/msg/Log
+    /turtle1/color_sensor: turtlesim/msg/Color
+    /turtle1/pose: turtlesim/msg/Pose
+  Service Servers:
+    /clear: std_srvs/srv/Empty
+    /kill: turtlesim/srv/Kill
+    /reset: std_srvs/srv/Empty
+    /spawn: turtlesim/srv/Spawn
+    /turtle1/set_pen: turtlesim/srv/SetPen
+    /turtle1/teleport_absolute: turtlesim/srv/TeleportAbsolute
+    /turtle1/teleport_relative: turtlesim/srv/TeleportRelative
+    /turtlesim/describe_parameters: rcl_interfaces/srv/DescribeParameters
+    /turtlesim/get_parameter_types: rcl_interfaces/srv/GetParameterTypes
+    /turtlesim/get_parameters: rcl_interfaces/srv/GetParameters
+    /turtlesim/list_parameters: rcl_interfaces/srv/ListParameters
+    /turtlesim/set_parameters: rcl_interfaces/srv/SetParameters
+    /turtlesim/set_parameters_atomically: rcl_interfaces/srv/SetParametersAtomically
+  Service Clients:
+
+  Action Servers:
+    /turtle1/rotate_absolute: turtlesim/action/RotateAbsolute
+  Action Clients:
+```
+The command returns a list of /turtlesim’s subscribers, publishers, services, action servers and action clients.
+
+Notice that the **/turtle1/rotate_absolute** action for **/turtlesim** is under **Action Servers**. This means **/turtlesim** responds to and provides feedback for the **/turtle1/rotate_absolute** action.
+
+The **/teleop_turtle** node has the name **/turtle1/rotate_absolute** under **Action Clients** meaning that it sends goals for that action name. To see that, run:
+```bash
+ros2 node info /teleop_turtle
+```
+```
+/teleop_turtle
+  Subscribers:
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+  Publishers:
+    /parameter_events: rcl_interfaces/msg/ParameterEvent
+    /rosout: rcl_interfaces/msg/Log
+    /turtle1/cmd_vel: geometry_msgs/msg/Twist
+  Service Servers:
+    /teleop_turtle/describe_parameters: rcl_interfaces/srv/DescribeParameters
+    /teleop_turtle/get_parameter_types: rcl_interfaces/srv/GetParameterTypes
+    /teleop_turtle/get_parameters: rcl_interfaces/srv/GetParameters
+    /teleop_turtle/list_parameters: rcl_interfaces/srv/ListParameters
+    /teleop_turtle/set_parameters: rcl_interfaces/srv/SetParameters
+    /teleop_turtle/set_parameters_atomically: rcl_interfaces/srv/SetParametersAtomically
+  Service Clients:
+
+  Action Servers:
+
+  Action Clients:
+    /turtle1/rotate_absolute: turtlesim/action/RotateAbsolute
+```
+
+### 3. ROS2 ACTION LIST
+To identify all the actions in the ROS graph, run the command:
+```bash
+ros2 action list
+```
+```
+/turtle1/rotate_absolute
+```
+This is the only action in the ROS graph right now. It controls the turtle’s rotation, as you saw earlier. You also already know that there is one action client (part of **/teleop_turtle**) and one action server (part of **/turtlesim**) for this action from using the **ros2 node info <node_name>** command.
+
+Actions have types, similar to topics and services. To find /turtle1/rotate_absolute’s type, run the command:
+```bash
+ros2 action list -t
+```
+```
+/turtle1/rotate_absolute [turtlesim/action/RotateAbsolute]
+```
+In brackets to the right of each action name (in this case only /turtle1/rotate_absolute) is the action type, turtlesim/action/RotateAbsolute.
+
+### 4. ROS2 ACTION INFO
+You can further introspect the /turtle1/rotate_absolute action with the command:
+```bash
+ros2 action info /turtle1/rotate_absolute
+```
+```
+Action: /turtle1/rotate_absolute
+Action clients: 1
+    /teleop_turtle
+Action servers: 1
+    /turtlesim
+```
+This tells us what we learned earlier from running **ros2 node info** on each node: The **/teleop_turtle** node has an action client and the **/turtlesim** node has an action server for the **/turtle1/rotate_absolute** action.
+
+### 5. ROS2 INTERFACE SHOW
+One more piece of information you will need before sending or executing an action goal yourself is the structure of the action type.
+
+Recall that you identified **/turtle1/rotate_absolute**’s type when running the command **ros2 action list -t**. Enter the following command with the action type in your terminal:
+```bash
+ros2 interface show turtlesim/action/RotateAbsolute
+```
+Which will return:
+```
+# The desired heading in radians
+float32 theta
+---
+# The angular displacement in radians to the starting position
+float32 delta
+---
+# The remaining rotation in radians
+float32 remaining
+```
+The section of this message above the first **---** is the structure (data type and name) of the goal request. The next section is the structure of the result. The last section is the structure of the feedback.
+
+## 6. ROS2 ACTION SEND_GOAL
+Now let’s send an action goal from the command line with the following syntax:
+```bash
+ros2 action send_goal <action_name> <action_type> <values>
+```
+**<values>** need to be in YAML format.
+
+Keep an eye on the turtlesim window, and enter the following command into your terminal:
+```bash
+ros2 action send_goal /turtle1/rotate_absolute turtlesim/action/RotateAbsolute "{theta: 1.57}"
+```
+```
+Waiting for an action server to become available...
+Sending goal:
+   theta: 1.57
+
+Goal accepted with ID: f8db8f44410849eaa93d3feb747dd444
+
+Result:
+  delta: -1.568000316619873
+
+Goal finished with status: SUCCEEDED
+```
+You should see the turtle rotating.
+
+All goals have a unique ID, shown in the return message. You can also see the result, a field with the name **delta**, which is the displacement to the starting position.
+
+To see the feedback of this goal, add **--feedback** to the **ros2 action send_goal** command:
+```bash
+ros2 action send_goal /turtle1/rotate_absolute turtlesim/action/RotateAbsolute "{theta: -1.57}" --feedback
+```
+```
+Sending goal:
+   theta: -1.57
+
+Goal accepted with ID: e6092c831f994afda92f0086f220da27
+
+Feedback:
+  remaining: -3.1268222332000732
+
+Feedback:
+  remaining: -3.1108222007751465
+
+…
+
+Result:
+  delta: 3.1200008392333984
+
+Goal finished with status: SUCCEEDED
+```
+You will continue to receive feedback, the remaining radians, until the goal is complete.
+
+## LAUNCHING NODES
+In most of the introductory tutorials, you have been opening new terminals for every new node you run. As you create more complex systems with more and more nodes running simultaneously, opening terminals and reentering configuration details becomes tedious.
+
+Launch files allow you to start up and configure a number of executables containing ROS 2 nodes simultaneously.
+
+Running a single launch file with the ros2 launch command will start up your entire system - all nodes and their configurations - at once.
+
+Open a new terminal and run:
+```bash
+ros2 run turtlesim turtlesim_node
+```
+This command will run the following launch file:
+```
+from launch import LaunchDescription
+import launch_ros.actions
+
+
+def generate_launch_description():
+    return LaunchDescription([
+        launch_ros.actions.Node(
+            namespace='turtlesim1', package='turtlesim',
+            executable='turtlesim_node', output='screen'),
+        launch_ros.actions.Node(
+            namespace='turtlesim2', package='turtlesim',
+            executable='turtlesim_node', output='screen'),
+    ])
+```
+This will run two turtlesim nodes.
+The launch file above is written in Python, but you can also use XML and YAML to create launch files.
 
 
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
+
+```bash
+ros2 run rqt_graph rqt_graph
+```
+
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
