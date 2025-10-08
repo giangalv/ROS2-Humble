@@ -515,7 +515,7 @@ The turtlesim window should appear as usual, but with the purple background you 
 
 -----------------------------------------------------------------------------------------------
 
-## ACTIONS
+# ACTIONS
 Open a new terminal and run:
 ```bash
 ros2 run turtlesim turtlesim_node
@@ -525,7 +525,7 @@ Open another terminal and run:
 ros2 run turtlesim turtle_teleop_key
 ```
 
-### 1. USE ACTIONS
+## 1. USE ACTIONS
 When you launch the /teleop_turtle node, you will see the following message in your terminal:
 ```
 Use arrow keys to move the turtle.
@@ -554,7 +554,7 @@ Try hitting the D key, then the G key before the first rotation can complete. In
 ```
 This action server chose to abort the first goal because it got a new one. It could have chosen something else, like reject the new goal or execute the second goal after the first one finished. Don’t assume every action server will choose to abort the current goal when it gets a new one.
 
-### 2. ROS2 NODE INFO
+## 2. ROS2 NODE INFO
 To see the list of actions a node provides, **/turtlesim** in this case, open a new terminal and run the command:
 ```bash
 ros2 node info /turtlesim
@@ -620,7 +620,7 @@ ros2 node info /teleop_turtle
     /turtle1/rotate_absolute: turtlesim/action/RotateAbsolute
 ```
 
-### 3. ROS2 ACTION LIST
+## 3. ROS2 ACTION LIST
 To identify all the actions in the ROS graph, run the command:
 ```bash
 ros2 action list
@@ -639,7 +639,7 @@ ros2 action list -t
 ```
 In brackets to the right of each action name (in this case only /turtle1/rotate_absolute) is the action type, turtlesim/action/RotateAbsolute.
 
-### 4. ROS2 ACTION INFO
+## 4. ROS2 ACTION INFO
 You can further introspect the /turtle1/rotate_absolute action with the command:
 ```bash
 ros2 action info /turtle1/rotate_absolute
@@ -725,13 +725,14 @@ Goal finished with status: SUCCEEDED
 ```
 You will continue to receive feedback, the remaining radians, until the goal is complete.
 
-## LAUNCHING NODES
+# LAUNCHING NODES
 In most of the introductory tutorials, you have been opening new terminals for every new node you run. As you create more complex systems with more and more nodes running simultaneously, opening terminals and reentering configuration details becomes tedious.
 
 Launch files allow you to start up and configure a number of executables containing ROS 2 nodes simultaneously.
 
 Running a single launch file with the ros2 launch command will start up your entire system - all nodes and their configurations - at once.
 
+## 1. RUNNING A LAUNCH FILE
 Open a new terminal and run:
 ```bash
 ros2 run turtlesim turtlesim_node
@@ -755,6 +756,108 @@ def generate_launch_description():
 This will run two turtlesim nodes.
 The launch file above is written in Python, but you can also use XML and YAML to create launch files.
 
+## 2. CONTROL THE TURTLESIM NODES
+Now that these nodes are running, you can control them like any other ROS 2 nodes.
+
+In a second terminal:
+```bash
+ros2 topic pub  /turtlesim1/turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"
+```
+
+In a third terminal:
+```bash
+ros2 topic pub  /turtlesim2/turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: -1.8}}"
+```
+After running these commands, you should see the turtles drive in opposite directions.
+
+# USING COLCON TO BUILD PACKAGES
+## 1. INSTALL COLCON
+```bash
+sudo apt install python3-colcon-common-extensions
+```
+
+## 2. BASICS
+A ROS workspace is a directory with a particular structure. Commonly there is a **src*** subdirectory. Inside that subdirectory is where the source code of ROS packages will be located. Typically the directory starts otherwise empty.
+
+colcon performs out-of-source builds. By default it will create the following directories as peers of the **src** directory:
+* The **build** directory will be where intermediate files are stored. For each package a subfolder will be created in which e.g. CMake is being invoked.
+* The **install** directory is where each package will be installed to. By default each package will be installed into a separate subdirectory.
+* The **log** directory contains various logging information about each colcon invocation.
+
+NB: Compared to catkin there is no **devel** directory.
+
+## 3. CREATE A WORKSPACE
+First, create a directory (ros2_ws) to contain our workspace:
+```bash
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws
+```
+At this point the workspace contains a single empty directory **src**.
+
+## 4. ADD SOME SOURCES
+Let’s clone the examples repository into the src directory of the workspace:
+```bash
+git clone https://github.com/ros2/examples src/examples -b humble
+```
+Now the workspace should have the source code to the ROS 2 examples.
+
+In the root of the workspace, run colcon build.
+```bash
+colcon build --symlink-install
+```
+After the build is finished, we should see the build, install, and log directories:
+```
+.
+├── build
+├── install
+├── log
+└── src
+
+4 directories, 0 files
+```
+
+## 5. RUN TESTS
+To run tests for the packages we just built, run the following:
+```bash
+colcon test
+```
+
+## 6. SOURCE THE ENVIRONMENT
+When colcon has completed building successfully, the output will be in the **install** directory. Before you can use any of the installed executables or libraries, you will need to add them to your path and library paths. colcon will have generated bash/bat files in the **install** directory to help set up the environment. These files will add all of the required elements to your path and library paths as well as provide any bash or shell commands exported by packages.
+```bash
+source install/setup.bash
+```
+
+## 7. TRY A DEMO
+With the environment sourced, we can run executables built by colcon. Let’s run a subscriber node from the examples:
+```bash
+ros2 run examples_rclcpp_minimal_subscriber subscriber_member_function
+```
+
+In another terminal, let’s run a publisher node (don’t forget to source the setup script):
+```bash
+ros2 run examples_rclcpp_minimal_publisher publisher_member_function
+```
+You should see messages from the publisher and subscriber with numbers incrementing.
+
+## 8. TIPS
+* If you do not want to build a specific package, then place an empty file named **COLCON_IGNORE** in the directory and it will not be indexed.
+* If you want to avoid configuring and building tests in CMake packages you can pass: **--cmake-args -DBUILD_TESTING=0**.
+* If you want to run a single particular test from a package:
+```bash
+colcon test --packages-select YOUR_PKG_NAME --ctest-args -R YOUR_TEST_IN_PKG
+```
+
+# CREATING A WORKSPACE
+
+
+```bash
+ros2 run rqt_graph rqt_graph
+```
+
+```bash
+ros2 run rqt_graph rqt_graph
+```
 
 ```bash
 ros2 run rqt_graph rqt_graph
