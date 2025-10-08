@@ -849,7 +849,86 @@ colcon test --packages-select YOUR_PKG_NAME --ctest-args -R YOUR_TEST_IN_PKG
 ```
 
 # CREATING A WORKSPACE
+A workspace is a directory containing ROS 2 packages. Before using ROS 2, it’s necessary to source your ROS 2 installation workspace in the terminal you plan to work in. This makes ROS 2’s packages available for you to use in that terminal.
 
+## 1. CREATE A NEW DIRECTORY
+ The name doesn’t matter, but it is helpful to have it indicate the purpose of the workspace. Let’s choose the directory name ros2_ws, for “development workspace”:
+```bash
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+```
+
+## 2. CLONE A SAMPLE REPO
+Ensure you’re still in the ros2_ws/src directory before you clone.
+
+A repo can have multiple branches. You need to check out the one that targets your installed ROS 2 distro. When you clone this repo, add the -b argument followed by that branch.
+
+In the ros2_ws/src directory, run the following command:
+```bash
+git clone https://github.com/ros/ros_tutorials.git -b humble
+```
+Now ros_tutorials is cloned in your workspace. The ros_tutorials repository contains the turtlesim package, which we’ll use in the rest of this tutorial. The other packages in this repository are not built because they contain a COLCON_IGNORE file.
+
+## 3. RESOLVE DEPENDECIES
+Before building the workspace, you need to resolve the package dependencies. You may have all the dependencies already, but best practice is to check for dependencies every time you clone. You wouldn’t want a build to fail after a long wait only to realize that you have missing dependencies.
+
+From the root of your workspace (ros2_ws), run the following command:
+If you’re still in the src directory with the ros_tutorials clone, make sure to run cd .. to move back up to the workspace (ros2_ws).
+```bash
+cd ..
+rosdep install -i --from-path src --rosdistro humble -y
+```
+
+cd ..
+rosdep install -i --from-path src --rosdistro humble -y
+```
+#All required rosdeps installed successfully
+```
+Packages declare their dependencies in the package.xml file (you will learn more about packages in the next tutorial). This command walks through those declarations and installs the ones that are missing. You can learn more about rosdep in another tutorial (coming soon).
+
+## 4. BUILD THE WORKSPACE WITH COLCON
+From the root of your workspace (ros2_ws), you can now build your packages using the command:
+```bash
+colcon build
+```
+Once the build is finished, enter the command in the workspace root (~/ros2_ws). You will see that colcon has created new directories:
+```bash
+ls
+build  install  log  src
+```
+The **install** directory is where your workspace’s setup files are, which you can use to source your overlay.
+
+## 5. SOURCE THE OVERLAY
+Before sourcing the overlay, it is very important that you open a new terminal, separate from the one where you built the workspace.
+In the new terminal, source your main ROS 2 environment.
+```bash
+source /opt/ros/humble/setup.bash
+```
+Go into the root of your workspace:
+
+```bash
+cd ~/ros2_ws
+```
+
+In the root, source your overlay:
+```bash
+source install/local_setup.bash
+```
+
+Now you can run the turtlesim package from the overlay:
+```bash
+ros2 run turtlesim turtlesim_node
+```
+
+# CREATING A PACKAGE
+
+```bash
+ros2 run rqt_graph rqt_graph
+```
+
+```bash
+ros2 run rqt_graph rqt_graph
+```
 
 ```bash
 ros2 run rqt_graph rqt_graph
