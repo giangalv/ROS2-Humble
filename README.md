@@ -1008,25 +1008,112 @@ ros2 pkg create --build-type ament_python --license Apache-2.0 --node-name my_no
 You will now have a new folder within your workspace’s src directory called my_package.
 
 ## 4. BUILD A PACKAGE
+Putting packages in a workspace is especially valuable because you can build many packages at once by running colcon build in the workspace root. Otherwise, you would have to build each package individually.
 
+Return to the root of your workspace:
+```bash
+cd ~/ros2_ws
+```
+Now you can build your packages:
+```bash
+colcon build
+```
 
+To build only the my_package package next time, you can run:
+```bash
+colcon build --packages-select my_package
+```
 
+## 5. SOURCE THE SETUP FILE
+To use your new package and executable, first open a new terminal and source your main ROS 2 installation.
+```bash
+source /opt/ros/humble/setup.bash
+```
 
+Then, from inside the ros2_ws directory, run the following command to source your workspace:
+```bash
+source install/local_setup.bash
+```
 
+NB: To avoid this all the time, add both sourcing commads to your ~/.bashrc file and save.
+```
+# Source ROS 2 installation
+source /opt/ros/humble/setup.bash
+
+# Source your workspace
+source ~/ros2_ws/install/setup.bash
+```
+
+## 6. USE THE PACKAGE
+To run the executable you created using the --node-name argument during package creation, enter the command:
+```bash
+ros2 run my_package my_node
+```
+
+## 7. CUSTOMIZE PACKAGE.XML
+You may have noticed in the return message after creating your package that the fields description and license contain TODO notes. That’s because the package description and license declaration are not automatically set, but are required if you ever want to release your package. The maintainer field may also need to be filled in.
+
+From ros2_ws/src/my_package, open package.xml using your preferred text editor.
+
+Input your name and email on the maintainer line if it hasn’t been automatically populated for you. Then, edit the description line to summarize the package.
+
+Then, update the license line. You can read more about open source licenses later. Since this package is only for practice, it’s safe to use any license. We’ll use Apache License 2.0.
+Don’t forget to save once you’re done editing.
+
+Below the license tag, you will see some tag names ending with _depend. This is where your package.xml would list its dependencies on other packages, for colcon to search for. my_package is simple and doesn’t have any dependencies, but you will see this space being utilized in future.
+
+### 7.b JUST IN PYTHON
+The setup.py file contains the same description, maintainer and license fields as package.xml, so you need to set those as well. They need to match exactly in both files. The version and name (package_name) also need to match exactly, and should be automatically populated in both files.
+
+Open setup.py with your preferred text editor.
+
+Edit the maintainer, maintainer_email, and description lines to match package.xml.
+
+Don’t forget to save the file.
+
+# WRITING A SIMPLE PUBLISHER AND SUBSCRIBER (PYTHON)
+In this tutorial, you will create nodes that pass information in the form of string messages to each other over a topic. The example used here is a simple “talker” and “listener” system; one node publishes data and the other subscribes to the topic so it can receive that data.
 
 
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
-
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
-
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
-
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
+```bash
+ros2 run rqt_graph rqt_graph
+```
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
