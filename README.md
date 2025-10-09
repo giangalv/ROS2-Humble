@@ -1074,28 +1074,123 @@ Don’t forget to save the file.
 # WRITING A SIMPLE PUBLISHER AND SUBSCRIBER (PYTHON)
 In this tutorial, you will create nodes that pass information in the form of string messages to each other over a topic. The example used here is a simple “talker” and “listener” system; one node publishes data and the other subscribes to the topic so it can receive that data.
 
+## 1. CREATE A PACKAGE
+Recall that packages should be created in the src directory, not the root of the workspace. So, navigate into ros2_ws/src, and run the package creation command:
+```bash
+ros2 pkg create --build-type ament_python --license Apache-2.0 py_pubsub
+```
+Your terminal will return a message verifying the creation of your package py_pubsub and all its necessary files and folders.
 
+## 2. WRITE THE PUBLISHER NODE
+Navigate into ros2_ws/src/py_pubsub/py_pubsub.
+
+Download the example talker code by entering the following command:
 ```bash
-ros2 run rqt_graph rqt_graph
+wget https://raw.githubusercontent.com/ros2/examples/humble/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.py
 ```
+Now there will be a new file named publisher_member_function.py adjacent to __init__.py.
+Open the file using your preferred text editor.
+
+### 2.1 EXAMINE THE CODE
+The first lines of code after the comments import rclpy so its Node class can be used.
+
+The next statement imports the built-in string message type that the node uses to structure the data that it passes on the topic. These lines represent the node’s dependencies. Recall that dependencies have to be added to package.xml, which you’ll do in the next section.
+
+Next, the MinimalPublisher class is created, which inherits from (or is a subclass of) Node. Following is the definition of the class’s constructor. super().__init__ calls the Node class’s constructor and gives it your node name, in this case minimal_publisher.
+
+create_publisher declares that the node publishes messages of type String (imported from the std_msgs.msg module), over a topic named topic, and that the “queue size” is 10. Queue size is a required QoS (quality of service) setting that limits the amount of queued messages if a subscriber is not receiving them fast enough.
+
+Next, a timer is created with a callback to execute every 0.5 seconds. self.i is a counter used in the callback.
+
+timer_callback creates a message with the counter value appended, and publishes it to the console with get_logger().info.
+
+Lastly, the main function is defined. First the rclpy library is initialized, then the node is created, and then it “spins” the node so its callbacks are called.
+
+### 2.2 ADD DEPENDENCIES
+Navigate one level back to the ros2_ws/src/py_pubsub directory, where the setup.py, setup.cfg, and package.xml files have been created for you. 
+Open package.xml with your text editor.
+
+As mentioned before, make sure to fill in the <description>, <maintainer> and <license> tags.
+
+Add the following dependencies corresponding to your node’s import statements:
+```
+<exec_depend>rclpy</exec_depend>
+<exec_depend>std_msgs</exec_depend>
+```
+This declares the package needs rclpy and std_msgs when its code is executed. Make sure to save the file.
+
+### 2.3 ADD AN ENTRY POINT
+Open the setup.py file. Again, match the maintainer, maintainer_email, description and license fields to your package.xml
+
+Add the following line within the console_scripts brackets of the entry_points field:
+```
+entry_points={
+        'console_scripts': [
+                'talker = py_pubsub.publisher_member_function:main',
+        ],
+},
+```
+Don’t forget to save.
+
+## 3. WRITE THE SUBSCRIBER NODE
+Return to ros2_ws/src/py_pubsub/py_pubsub to create the next node. Enter the following code in your terminal:
 ```bash
-ros2 run rqt_graph rqt_graph
+wget https://raw.githubusercontent.com/ros2/examples/humble/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.py
 ```
+
+### 3.1 EXAMINE THE CODE
+Open the subscriber_member_function.py with your text editor.
+
+The subscriber node’s code is nearly identical to the publisher’s. The constructor creates a subscriber with the same arguments as the publisher.
+
+The topic name and message type used by the publisher and subscriber must match to allow them to communicate.
+
+The subscriber’s constructor and callback don’t include any timer definition, because it doesn’t need one. Its callback gets called as soon as it receives a message.
+
+The callback definition simply prints an info message to the console, along with the data it received. Recall that the publisher defines msg.data = 'Hello World: %d' % self.i
+
+The main definition is almost exactly the same, replacing the creation and spinning of the publisher with the subscriber.
+
+Since this node has the same dependencies as the publisher, there’s nothing new to add to package.xml. The setup.cfg file can also remain untouched.
+
+### 3.2 ADD AN ENTRY POINT
+Reopen setup.py and add the entry point for the subscriber node below the publisher’s entry point. The entry_points field should now look like this:
+```
+entry_points={
+        'console_scripts': [
+                'talker = py_pubsub.publisher_member_function:main',
+                'listener = py_pubsub.subscriber_member_function:main',
+        ],
+},
+```
+Make sure to save the file, and then your pub/sub system should be ready.
+
+## 4. BUILD AND RUN
+You likely already have the rclpy and std_msgs packages installed as part of your ROS 2 system. It’s good practice to run rosdep in the root of your workspace (ros2_ws) to check for missing dependencies before building:
 ```bash
-ros2 run rqt_graph rqt_graph
+rosdep install -i --from-path src --rosdistro humble -y
 ```
+Still in the root of your workspace, ros2_ws, build your new package:
 ```bash
-ros2 run rqt_graph rqt_graph
+colcon build --packages-select py_pubsub
 ```
+Open a new terminal, navigate to ros2_ws, run the talker node. The terminal should start publishing info messages every 0.5 seconds.
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 run py_pubsub talker
 ```
+
+Open another terminal and start the listener node. The listener will start printing messages to the console, starting at whatever message count the publisher is on at that time.
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 run py_pubsub listener
 ```
-```bash
-ros2 run rqt_graph rqt_graph
-```
+Enter Ctrl+C in each terminal to stop the nodes from spinning.
+
+# WRITING A SIMPLE SERVICE AND CLIENT (PYTHON)
+When nodes communicate using services, the node that sends a request for data is called the client node, and the one that responds to the request is the service node. The structure of the request and response is determined by a .srv file.
+
+The example used here is a simple integer addition system; one node requests the sum of two integers, and the other responds with the result.
+
+
 ```bash
 ros2 run rqt_graph rqt_graph
 ```
