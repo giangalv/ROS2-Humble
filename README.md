@@ -1190,25 +1190,701 @@ When nodes communicate using services, the node that sends a request for data is
 
 The example used here is a simple integer addition system; one node requests the sum of two integers, and the other responds with the result.
 
+## 1. CREATE A PACKAGE
+Navigate into the ros2_ws directory.
 
+Recall that packages should be created in the src directory, not the root of the workspace. Navigate into ros2_ws/src and create a new package:
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 pkg create --build-type ament_python --license Apache-2.0 py_srvcli --dependencies rclpy example_interfaces
+```
+The --dependencies argument will automatically add the necessary dependency lines to package.xml.
+example_interfaces is the package that includes the .srv file you will need to structure your requests and responses:
+```
+int64 a
+int64 b
+---
+int64 sum
+```
+The first two lines are the parameters of the request, and below the dashes is the response.
+
+### 1.1 UPDATE SETUP.PY
+Add the same information to the setup.py file for the maintainer, maintainer_email, description and license fields.
+
+## 2. WRITE THE SERVICE NODE
+Inside the ros2_ws/src/py_srvcli/py_srvcli directory, create a new file called service_member_function.py and paste the following code within:
+```
+from example_interfaces.srv import AddTwoInts
+
+import rclpy
+from rclpy.node import Node
+
+
+class MinimalService(Node):
+
+    def __init__(self):
+        super().__init__('minimal_service')
+        self.srv = self.create_service(AddTwoInts, 'add_two_ints', self.add_two_ints_callback)
+
+    def add_two_ints_callback(self, request, response):
+        response.sum = request.a + request.b
+        self.get_logger().info('Incoming request\na: %d b: %d' % (request.a, request.b))
+
+        return response
+
+
+def main():
+    rclpy.init()
+
+    minimal_service = MinimalService()
+
+    rclpy.spin(minimal_service)
+
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+### 2.1 EXAMINE THE CODE
+The first import statement imports the AddTwoInts service type from the example_interfaces package. The following import statement imports the ROS 2 Python client library, and specifically the Node class.
+
+The MinimalService class constructor initializes the node with the name minimal_service. Then, it creates a service and defines the type, name, and callback.
+
+The definition of the service callback receives the request data, sums it, and returns the sum as a response.
+
+Finally, the main class initializes the ROS 2 Python client library, instantiates the MinimalService class to create the service node and spins the node to handle callbacks.
+
+### 2.2 ADD AN ENTRY POINT
+To allow the ros2 run command to run your node, you must add the entry point to setup.py (located in the ros2_ws/src/py_srvcli directory).
+Add the following line between the 'console_scripts': brackets:
+```
+'service = py_srvcli.service_member_function:main',
+```
+
+## 3. WRITE THE CLIENT NODE
+Inside the ros2_ws/src/py_srvcli/py_srvcli directory, create a new file called client_member_function.py and paste the following code within:
+```
+import sys
+
+from example_interfaces.srv import AddTwoInts
+import rclpy
+from rclpy.node import Node
+
+
+class MinimalClientAsync(Node):
+
+    def __init__(self):
+        super().__init__('minimal_client_async')
+        self.cli = self.create_client(AddTwoInts, 'add_two_ints')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+        self.req = AddTwoInts.Request()
+
+    def send_request(self, a, b):
+        self.req.a = a
+        self.req.b = b
+        return self.cli.call_async(self.req)
+
+
+def main():
+    rclpy.init()
+
+    minimal_client = MinimalClientAsync()
+    future = minimal_client.send_request(int(sys.argv[1]), int(sys.argv[2]))
+    rclpy.spin_until_future_complete(minimal_client, future)
+    response = future.result()
+    minimal_client.get_logger().info(
+        'Result of add_two_ints: for %d + %d = %d' %
+        (int(sys.argv[1]), int(sys.argv[2]), response.sum))
+
+    minimal_client.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+### 3.1 EXAMINE THE CODE
+As with the service code, we first import the necessary libraries.
+
+The MinimalClientAsync class constructor initializes the node with the name minimal_client_async. The constructor definition creates a client with the same type and name as the service node. The type and name must match for the client and service to be able to communicate. The while loop in the constructor checks if a service matching the type and name of the client is available once a second. Finally it creates a new AddTwoInts request object.
+
+Below the constructor is the send_request method, which will send the request and spin until it receives the response or fails.
+
+Finally we have the main method, which constructs a MinimalClientAsync object, sends the request using the passed-in command-line arguments, calls rclpy.spin_until_future_complete to wait for the result, and logs the results.
+
+### 3.2 ADD AN ENTRY POINT
+Like the service node, you also have to add an entry point to be able to run the client node.
+The entry_points field of your setup.py file should look like this:
+```
+entry_points={
+    'console_scripts': [
+        'service = py_srvcli.service_member_function:main',
+        'client = py_srvcli.client_member_function:main',
+    ],
+},
+```
+
+## 4. BUILD AND RUN
+Navigate back to the root of your workspace, ros2_ws, and build your new package:
+```bash
+colcon build --packages-select py_srvcli
+```
+
+Open a new terminal, navigate to ros2_ws, and run the service node:
+```bash
+ros2 run py_srvcli service
+```
+The node will wait for the client’s request.
+
+Open another terminal and start the client node, followed by any two integers separated by a space:
+```bash
+ros2 run py_srvcli client 2 3
+```
+Return to the terminal where your service node is running to observe what is happening.
+
+Enter Ctrl+C in the server terminal to stop the node from spinning.
+
+# CREATING CUSTOM MSG AND SRV FILES
+While it’s good practice to use predefined interface definitions, you will probably need to define your own messages and services sometimes as well. This tutorial will introduce you to the simplest method of creating custom interface definitions.
+
+## 1. CREATE A PACKAGE
+For this tutorial you will be creating custom .msg and .srv files in their own package, and then utilizing them in a separate package. Both packages should be in the same workspace.
+
+Navigate into the ros2_ws directory. Recall that packages should be created in the src directory, not the root of the workspace. Navigate into ros2_ws/src and create a new package:
+```bash
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 tutorial_interfaces
+```
+tutorial_interfaces is the name of the new package. Note that it is, and can only be, an ament_cmake package, but this doesn’t restrict in which type of packages you can use your messages and services. You can create your own custom interfaces in an ament_cmake package, and then use it in a C++ or Python node, which will be covered in the last section.
+
+The .msg and .srv files are required to be placed in directories called msg and srv respectively. Create the directories in ros2_ws/src/tutorial_interfaces:
+```bash
+mkdir msg srv
+```
+
+## 2. CREATE CUSTOM DEFINITIONS
+### 2.1 MSG DEFINITION
+In the tutorial_interfaces/msg directory you just created, make a new file called Num.msg with one line of code declaring its data structure:
+```
+int64 num
+```
+This is a custom message that transfers a single 64-bit integer called num.
+
+Also in the tutorial_interfaces/msg directory you just created, make a new file called Sphere.msg with the following content:
+```
+geometry_msgs/Point center
+float64 radius
+```
+This custom message uses a message from another message package (geometry_msgs/Point in this case).
+
+### 2.2 SRV DEFINITION
+Back in the tutorial_interfaces/srv directory you just created, make a new file called AddThreeInts.srv with the following request and response structure:
+```
+int64 a
+int64 b
+int64 c
+---
+int64 sum
+```
+This is your custom service that requests three integers named a, b, and c, and responds with an integer called sum.
+
+## 3. CMAKELISTS.TXT
+To convert the interfaces you defined into language-specific code (like C++ and Python) so that they can be used in those languages, add the following lines to CMakeLists.txt:
+```
+find_package(geometry_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/Num.msg"
+  "msg/Sphere.msg"
+  "srv/AddThreeInts.srv"
+  DEPENDENCIES geometry_msgs # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
+)
+```
+
+## 4. PACKAGE.XML
+Because the interfaces rely on rosidl_default_generators for generating language-specific code, you need to declare a build tool dependency on it. rosidl_default_runtime is a runtime or execution-stage dependency, needed to be able to use the interfaces later. The rosidl_interface_packages is the name of the dependency group that your package, tutorial_interfaces, should be associated with, declared using the <member_of_group> tag.
+
+Add the following lines within the <package> element of package.xml:
+```
+<depend>geometry_msgs</depend>
+<buildtool_depend>rosidl_default_generators</buildtool_depend>
+<exec_depend>rosidl_default_runtime</exec_depend>
+<member_of_group>rosidl_interface_packages</member_of_group>
+```
+
+## 5. BUILD THE TUTORIAL_INTERFACES PACKAGE
+Now that all the parts of your custom interfaces package are in place, you can build the package. In the root of your workspace (~/ros2_ws), run the following command:
+```bash
+colcon build --packages-select tutorial_interfaces
+```
+Now the interfaces will be discoverable by other ROS 2 packages.
+
+## 6. CONFIRM MSG AND SRV CREATION
+In a new terminal, now you can confirm that your interface creation worked by using the ros2 interface show command. The output you see in your terminal should look similar to the following:
+```bash
+ros2 interface show tutorial_interfaces/msg/Num
 ```
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 interface show tutorial_interfaces/msg/Sphere
 ```
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 interface show tutorial_interfaces/srv/AddThreeInts
+```
+
+## 7. TEST THE NEW INTERFACES
+For this step you can use the packages you created in previous tutorials. A few simple modifications to the nodes, CMakeLists.txt and package.xml files will allow you to use your new interfaces.
+
+### 7.1 TESTING NUM.MSG WITH PUB/SUB
+With a few modifications to the publisher/subscriber package created in a previous tutorial, you can see Num.msg in action. Since you’ll be changing the standard string msg to a numerical one, the output will be slightly different.
+
+- PUBLISHER
+```
+import rclpy
+from rclpy.node import Node
+
+from tutorial_interfaces.msg import Num                            # CHANGE
+
+
+class MinimalPublisher(Node):
+
+    def __init__(self):
+        super().__init__('minimal_publisher')
+        self.publisher_ = self.create_publisher(Num, 'topic', 10)  # CHANGE
+        timer_period = 0.5
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.i = 0
+
+    def timer_callback(self):
+        msg = Num()                                                # CHANGE
+        msg.num = self.i                                           # CHANGE
+        self.publisher_.publish(msg)
+        self.get_logger().info('Publishing: "%d"' % msg.num)       # CHANGE
+        self.i += 1
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    minimal_publisher = MinimalPublisher()
+
+    rclpy.spin(minimal_publisher)
+
+    minimal_publisher.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+- SUBSCRIBER
+```
+import rclpy
+from rclpy.node import Node
+
+from tutorial_interfaces.msg import Num                        # CHANGE
+
+
+class MinimalSubscriber(Node):
+
+    def __init__(self):
+        super().__init__('minimal_subscriber')
+        self.subscription = self.create_subscription(
+            Num,                                               # CHANGE
+            'topic',
+            self.listener_callback,
+            10)
+        self.subscription
+
+    def listener_callback(self, msg):
+        self.get_logger().info('I heard: "%d"' % msg.num)  # CHANGE
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    minimal_subscriber = MinimalSubscriber()
+
+    rclpy.spin(minimal_subscriber)
+
+    minimal_subscriber.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+- CMAKELIST.TXT
+Only for the C++ packages.
+```
+#...
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(tutorial_interfaces REQUIRED)                      # CHANGE
+
+add_executable(talker src/publisher_member_function.cpp)
+ament_target_dependencies(talker rclcpp tutorial_interfaces)    # CHANGE
+
+add_executable(listener src/subscriber_member_function.cpp)
+ament_target_dependencies(listener rclcpp tutorial_interfaces)  # CHANGE
+
+install(TARGETS
+  talker
+  listener
+  DESTINATION lib/${PROJECT_NAME})
+
+ament_package()
+```
+
+- PACKAGE.XML
+-> PYTHON:
+```
+<exec_depend>tutorial_interfaces</exec_depend>
+```
+
+> C++:
+```
+<depend>tutorial_interfaces</depend>
+```
+
+After making the above edits and saving all the changes, build the package:
+```bash
+colcon build --packages-select py_pubsub
+```
+
+Then open two new terminals, source ros2_ws in each, and run:
+```bash
+ros2 run py_pubsub talker
 ```
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 run py_pubsub listener
+```
+Since Num.msg relays only an integer, the talker should only be publishing integer values, as opposed to the string it published previously.
+
+### 7.2 TESTING ADDTHREEINTS.SRV WITH SERVICE/CLIENT
+With a few modifications to the service/client package created in a previous tutorial, you can see AddThreeInts.srv in action. Since you’ll be changing the original two integer request srv to a three integer request srv, the output will be slightly different.
+
+- SERVICE:
+```
+from tutorial_interfaces.srv import AddThreeInts                                                           # CHANGE
+
+import rclpy
+from rclpy.node import Node
+
+
+class MinimalService(Node):
+
+    def __init__(self):
+        super().__init__('minimal_service')
+        self.srv = self.create_service(AddThreeInts, 'add_three_ints', self.add_three_ints_callback)       # CHANGE
+
+    def add_three_ints_callback(self, request, response):
+        response.sum = request.a + request.b + request.c                                                   # CHANGE
+        self.get_logger().info('Incoming request\na: %d b: %d c: %d' % (request.a, request.b, request.c))  # CHANGE
+
+        return response
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    minimal_service = MinimalService()
+
+    rclpy.spin(minimal_service)
+
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+- CLIENT:
+```
+from tutorial_interfaces.srv import AddThreeInts                            # CHANGE
+import sys
+import rclpy
+from rclpy.node import Node
+
+
+class MinimalClientAsync(Node):
+
+    def __init__(self):
+        super().__init__('minimal_client_async')
+        self.cli = self.create_client(AddThreeInts, 'add_three_ints')       # CHANGE
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+        self.req = AddThreeInts.Request()                                   # CHANGE
+
+    def send_request(self):
+        self.req.a = int(sys.argv[1])
+        self.req.b = int(sys.argv[2])
+        self.req.c = int(sys.argv[3])                                       # CHANGE
+        self.future = self.cli.call_async(self.req)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    minimal_client = MinimalClientAsync()
+    minimal_client.send_request()
+
+    while rclpy.ok():
+        rclpy.spin_once(minimal_client)
+        if minimal_client.future.done():
+            try:
+                response = minimal_client.future.result()
+            except Exception as e:
+                minimal_client.get_logger().info(
+                    'Service call failed %r' % (e,))
+            else:
+                minimal_client.get_logger().info(
+                    'Result of add_three_ints: for %d + %d + %d = %d' %                                # CHANGE
+                    (minimal_client.req.a, minimal_client.req.b, minimal_client.req.c, response.sum))  # CHANGE
+            break
+
+    minimal_client.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+- CMAKELIST.TXT:
+Only for the C++ packages:
+```
+#...
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(tutorial_interfaces REQUIRED)         # CHANGE
+
+add_executable(server src/add_two_ints_server.cpp)
+ament_target_dependencies(server
+  rclcpp tutorial_interfaces)                      # CHANGE
+
+add_executable(client src/add_two_ints_client.cpp)
+ament_target_dependencies(client
+  rclcpp tutorial_interfaces)                      # CHANGE
+
+install(TARGETS
+  server
+  client
+  DESTINATION lib/${PROJECT_NAME})
+
+ament_package()
+```
+
+- PACKAGE.XML
+-> PYTHON:
+```
+<exec_depend>tutorial_interfaces</exec_depend>
+```
+
+> C++:
+```
+<depend>tutorial_interfaces</depend>
+```
+
+After making the above edits and saving all the changes, build the package:
+```bash
+colcon build --packages-select cpp_srvcli
+```
+
+Then open two new terminals and run:
+```bash
+ros2 run cpp_srvcli server
 ```
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 run cpp_srvcli client 2 3 1
 ```
+
+# USING PARAMETERS IN A CLASS (PYTHON)
+When making your own nodes you will sometimes need to add parameters that can be set from the launch file.
+
+This tutorial will show you how to create those parameters in a Python class, and how to set them in a launch file.
+
+## 1. CREATE A PACKAGE
+Recall that packages should be created in the src directory, not the root of the workspace. Navigate into ros2_ws/src and create a new package:
 ```bash
-ros2 run rqt_graph rqt_graph
+ros2 pkg create --build-type ament_python --license Apache-2.0 python_parameters --dependencies rclpy
 ```
+
+### 1.1 UPDATE PACKAGE.XML
+Because you used the --dependencies option during package creation, you don’t have to manually add dependencies to package.xml or CMakeLists.txt.
+
+As always, though, make sure to add the description, maintainer email and name, and license information to package.xml.
+
+## 2. WRITE THE PYTHON NODE
+Inside the ros2_ws/src/python_parameters/python_parameters directory, create a new file called python_parameters_node.py and paste the following code within:
+```
+import rclpy
+import rclpy.node
+
+class MinimalParam(rclpy.node.Node):
+    def __init__(self):
+        super().__init__('minimal_param_node')
+
+        self.declare_parameter('my_parameter', 'world')
+
+        self.timer = self.create_timer(1, self.timer_callback)
+
+    def timer_callback(self):
+        my_param = self.get_parameter('my_parameter').get_parameter_value().string_value
+
+        self.get_logger().info('Hello %s!' % my_param)
+
+        my_new_param = rclpy.parameter.Parameter(
+            'my_parameter',
+            rclpy.Parameter.Type.STRING,
+            'world'
+        )
+        all_new_parameters = [my_new_param]
+        self.set_parameters(all_new_parameters)
+
+def main():
+    rclpy.init()
+    node = MinimalParam()
+    rclpy.spin(node)
+
+if __name__ == '__main__':
+    main()
+```
+
+### 2.1 EXAMINE THE CODE
+The import statements at the top are used to import the package dependencies.
+
+The next piece of code creates the class and the constructor. The line self.declare_parameter('my_parameter', 'world') of the constructor creates a parameter with the name my_parameter and a default value of world. The parameter type is inferred from the default value, so in this case it would be set to a string type. Next the timer is initialized with a period of 1, which causes the timer_callback function to be executed once a second.
+
+The first line of our timer_callback function gets the parameter my_parameter from the node, and stores it in my_param. Next the get_logger function ensures the event is logged. The set_parameters function then sets the parameter my_parameter back to the default string value world. In the case that the user changed the parameter externally, this ensures it is always reset back to the original.
+
+Following the timer_callback is our main. Here ROS 2 is initialized, an instance of the MinimalParam class is constructed, and rclpy.spin starts processing data from the node.
+
+### 2.2 ADD PARAMETERDESCRIPTOR
+Optionally, you can set a descriptor for the parameter. Descriptors allow you to specify a text description of the parameter and its constraints, like making it read-only, specifying a range, etc. For that to work, the __init__ code has to be changed to:
+```
+# ...
+
+class MinimalParam(rclpy.node.Node):
+    def __init__(self):
+        super().__init__('minimal_param_node')
+
+        from rcl_interfaces.msg import ParameterDescriptor
+        my_parameter_descriptor = ParameterDescriptor(description='This parameter is mine!')
+
+        self.declare_parameter('my_parameter', 'world', my_parameter_descriptor)
+
+        self.timer = self.create_timer(1, self.timer_callback)
+```
+Since we are importing rcl_interfaces, we need to add the dependency to package.xml to avoid any dependency issue in the future:
+```
+# ...
+<depend>rclpy</depend>
+<depend>rcl_interfaces</depend>
+```
+The rest of the code remains the same. Once you run the node, you can then run ros2 param describe /minimal_param_node my_parameter to see the type and description.
+
+### 2.3 ADD AN ENTRY POINT
+Open the setup.py file. Again, match the maintainer, maintainer_email, description and license fields to your package.xml.
+
+Add the following line within the console_scripts brackets of the entry_points field:
+```
+entry_points={
+    'console_scripts': [
+        'minimal_param_node = python_parameters.python_parameters_node:main',
+    ],
+},
+```
+Don’t forget to save.
+
+## 3. BUILD AND RUN
+Navigate back to the root of your workspace, ros2_ws, and build your new package:
 ```bash
-ros2 run rqt_graph rqt_graph
+colcon build --packages-select python_parameters
 ```
+
+Open a new terminal, run the node. The terminal should return Hello world! every second:
+```bash
+ros2 run python_parameters minimal_param_node
+```
+Now you can see the default value of your parameter, but you want to be able to set it yourself. There are two ways to accomplish this.
+
+### 3.1 CHANGE VIA THE CONSOLE
+Make sure the node is running:
+```bash
+ros2 run python_parameters minimal_param_node
+```
+
+Open another terminal and enter the following line:
+```bash
+ros2 param list
+```
+
+There you will see the custom parameter my_parameter. To change it, simply run the following line in the console:
+```bash
+ros2 param set /minimal_param_node my_parameter earth
+```
+You know it went well if you get the output Set parameter successful. If you look at the other terminal, you should see the output change to [INFO] [minimal_param_node]: Hello earth!
+
+### 3.2 CHANGE VIA LAUNCH FILE
+You can also set parameters in a launch file, but first you will need to add a launch directory. Inside the ros2_ws/src/python_parameters/ directory, create a new directory called launch. In there, create a new file called python_parameters_launch.py.
+```
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+
+def generate_launch_description():
+    return LaunchDescription([
+        Node(
+            package='python_parameters',
+            executable='minimal_param_node',
+            name='custom_minimal_param_node',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                {'my_parameter': 'earth'}
+            ]
+        )
+    ])
+```
+
+Here you can see that we set my_parameter to earth when we launch our node parameter_node. By adding the two lines below, we ensure our output is printed in our console.
+```
+output="screen",
+emulate_tty=True,
+```
+
+Now open the setup.py file. Add the import statements to the top of the file, and the other new statement to the data_files parameter to include all launch files:
+```
+import os
+from glob import glob
+# ...
+
+setup(
+  # ...
+  data_files=[
+      # ...
+      (os.path.join('share', package_name, 'launch'), glob('launch/*')),
+    ]
+  )
+```
+
+Open a console and navigate to the root of your workspace, ros2_ws, and build your new package:
+```bash
+colcon build --packages-select python_parameters
+```
+
+Open a new terminal and  run the node using the launch file we have just created.
+```bash
+ros2 launch python_parameters python_parameters_launch.py
+```
+
+The terminal should return the following message the first time:
+```
+[INFO] [custom_minimal_param_node]: Hello earth!
+```
+Further outputs should show [INFO] [minimal_param_node]: Hello world! every second.
