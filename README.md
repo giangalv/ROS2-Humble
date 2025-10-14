@@ -434,7 +434,7 @@ ros2 service call /spawn turtlesim/srv/Spawn "{x: 2, y: 2, theta: 0.2, name: ''}
 ```
 You will get this method-style view of what’s happening, and then the service response. Your turtlesim window will update with the newly spawned turtle.
 
-
+-----------------------------------------------------------------------------------------------
 # PARAMETERS
 A parameter is a configuration value of a node. You can think of parameters as node settings. A node can store parameters as integers, floats, booleans, strings, and lists. In ROS 2, each node maintains its own parameters.
 Open a new terminal and run:
@@ -734,6 +734,7 @@ Goal finished with status: SUCCEEDED
 ```
 You will continue to receive feedback, the remaining radians, until the goal is complete.
 
+-----------------------------------------------------------------------------------------------
 # LAUNCHING NODES
 In most of the introductory tutorials, you have been opening new terminals for every new node you run. As you create more complex systems with more and more nodes running simultaneously, opening terminals and reentering configuration details becomes tedious.
 
@@ -779,6 +780,7 @@ ros2 topic pub  /turtlesim2/turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x
 ```
 After running these commands, you should see the turtles drive in opposite directions.
 
+-----------------------------------------------------------------------------------------------
 # USING COLCON TO BUILD PACKAGES
 ## 1. INSTALL COLCON
 ```bash
@@ -857,6 +859,7 @@ You should see messages from the publisher and subscriber with numbers increment
 colcon test --packages-select YOUR_PKG_NAME --ctest-args -R YOUR_TEST_IN_PKG
 ```
 
+-----------------------------------------------------------------------------------------------
 # CREATING A WORKSPACE
 A workspace is a directory containing ROS 2 packages. Before using ROS 2, it’s necessary to source your ROS 2 installation workspace in the terminal you plan to work in. This makes ROS 2’s packages available for you to use in that terminal.
 
@@ -929,6 +932,7 @@ Now you can run the turtlesim package from the overlay:
 ros2 run turtlesim turtlesim_node
 ```
 
+-----------------------------------------------------------------------------------------------
 # CREATING A PACKAGE
 A package is an organizational unit for your ROS 2 code. If you want to be able to install your code or share it with others, then you’ll need it organized in a package. With packages, you can release your ROS 2 work and allow others to build and use it easily.
 
@@ -1080,6 +1084,7 @@ Edit the maintainer, maintainer_email, and description lines to match package.xm
 
 Don’t forget to save the file.
 
+-----------------------------------------------------------------------------------------------
 # WRITING A SIMPLE PUBLISHER AND SUBSCRIBER (PYTHON)
 In this tutorial, you will create nodes that pass information in the form of string messages to each other over a topic. The example used here is a simple “talker” and “listener” system; one node publishes data and the other subscribes to the topic so it can receive that data.
 
@@ -1194,6 +1199,7 @@ ros2 run py_pubsub listener
 ```
 Enter Ctrl+C in each terminal to stop the nodes from spinning.
 
+-----------------------------------------------------------------------------------------------
 # WRITING A SIMPLE SERVICE AND CLIENT (PYTHON)
 When nodes communicate using services, the node that sends a request for data is called the client node, and the one that responds to the request is the service node. The structure of the request and response is determined by a .srv file.
 
@@ -1356,6 +1362,7 @@ Return to the terminal where your service node is running to observe what is hap
 
 Enter Ctrl+C in the server terminal to stop the node from spinning.
 
+-----------------------------------------------------------------------------------------------
 # CREATING CUSTOM MSG AND SRV FILES
 While it’s good practice to use predefined interface definitions, you will probably need to define your own messages and services sometimes as well. This tutorial will introduce you to the simplest method of creating custom interface definitions.
 
@@ -1712,6 +1719,7 @@ ros2 run cpp_srvcli server
 ros2 run cpp_srvcli client 2 3 1
 ```
 
+-----------------------------------------------------------------------------------------------
 # USING PARAMETERS IN A CLASS (PYTHON)
 When making your own nodes you will sometimes need to add parameters that can be set from the launch file.
 
