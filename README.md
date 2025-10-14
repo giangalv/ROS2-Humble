@@ -145,6 +145,9 @@ To stop the simulation you can enter **Ctrl+c** in the terminals.
 
 -----------------------------------------------------------------------------------------------
 # TOPICS
+Topics are one of the main ways in which data is moved between nodes and therefore between different parts of the system.
+![Topic-MultiplePublisherandMultipleSubscriber](https://github.com/user-attachments/assets/21584dd0-7fff-4a13-89dc-021528d7e3c6)
+
 Open a new terminal and run:
 ```bash
 ros2 run turtlesim turtlesim_node
@@ -317,8 +320,10 @@ ros2 topic find geometry_msgs/msg/Twist
 To stop the simulation you can enter **Ctrl+c** in the terminals.
 
 -----------------------------------------------------------------------------------------------
-
 # SERVICES
+Services only provide data when they are specifically called by a client.
+![Service-MultipleServiceClient](https://github.com/user-attachments/assets/18498784-7c74-4447-9525-e6a9398b38a9)
+
 Open a new terminal and run:
 ```bash
 ros2 run turtlesim turtlesim_node
@@ -516,8 +521,10 @@ ros2 run turtlesim turtlesim_node --ros-args --params-file turtlesim.yaml
 The turtlesim window should appear as usual, but with the purple background you set earlier.
 
 -----------------------------------------------------------------------------------------------
-
 # ACTIONS
+Actions consist of three parts; a goal, feedback, and a result.
+![Action-SingleActionClient](https://github.com/user-attachments/assets/db145735-0bfc-4181-b10a-c29a61cc6c80)
+
 Open a new terminal and run:
 ```bash
 ros2 run turtlesim turtlesim_node
