@@ -74,7 +74,7 @@ To stop the simulation you can enter **Ctrl+c** in the terminals.
 -----------------------------------------------------------------------------------------------
 # NODES
 A full robotic system is comprised of many nodes working in concert.
-!(https://github.com/giangalv/ROS2-Humble/blob/main/gif_repo/Nodes-TopicandService.gif)
+https://github.com/giangalv/ROS2-Humble/blob/main/gif_repo/Nodes-TopicandService.gif
 ## 1. ROS2 RUN
 The command **ros2 run** launches an executable from a package.
 ```bash
